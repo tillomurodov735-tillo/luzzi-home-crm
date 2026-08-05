@@ -342,7 +342,7 @@ const DEFAULT_SCRIPT = `LUZZI HOME — PARDA SOTUV SKRIPTI (0 dan savdoni yopgun
 - Aniq sana oling: "Sizga ertaga soat 15:00 yoki indinga ertalab qulaymi?"
 
 5) O'LCHOV VA SMETA
-- O'lchovdan so'ng aniq smeta bering: "O'lchovga ko'ra jami ... so'm. Bunga mato, tikuv, aksessuar va montaj kiradi."
+- O'lchovdan so'ng aniq smeta bering: "O'lchovga ko'ra jami $... . Bunga mato, tikuv, aksessuar va montaj kiradi."
 - Qiymatni eslating: "Bu narxga kafolat va bepul montaj ham kiradi."
 
 6) E'TIROZLAR BILAN ISHLASH
@@ -406,7 +406,7 @@ const todayISO = () => { const d=new Date(); return d.getFullYear()+"-"+String(d
 const thisMonth = () => todayISO().slice(0,7);
 const monthKey = s => (s||"").slice(0,7);
 function esc(s){ return String(s??"").replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
-function fm(n){ return Number(n||0).toLocaleString("en-US").replace(/,/g," ") + " so'm"; }
+function fm(n){ return "$" + Number(n||0).toLocaleString("en-US"); }
 const MONTHS_UZ=["yan","fev","mar","apr","may","iyn","iyl","avg","sen","okt","noy","dek"];
 function fmtDate(s){
   if(!s) return "—";
@@ -1359,7 +1359,7 @@ function leadForm(id){
     <div class="field"><label>Manba</label><select id="lf_source">${selOpts(DB.settings.sources, l.source||DB.settings.sources[0])}</select></div>
   </div>
   <div class="grid2">
-    <div class="field"><label>Buyurtma summasi (so'm)</label><input id="lf_budget" type="number" min="0" value="${l.budget||""}" placeholder="2 500 000"></div>
+    <div class="field"><label>Buyurtma summasi ($)</label><input id="lf_budget" type="number" min="0" value="${l.budget||""}" placeholder="1500"></div>
     ${isAdmin()
       ? `<div class="field"><label>Sotuvchi</label><select id="lf_owner"><option value="">—</option>${selOpts(teamNames(), l.owner||ui.profile)}</select></div>`
       : `<input type="hidden" id="lf_owner" value="${esc(l.owner||ui.profile)}"><div class="field"><label>Sotuvchi</label><input value="${esc(l.owner||ui.profile)}" disabled style="opacity:.7"></div>`}
@@ -1508,7 +1508,7 @@ function convertModal(id){
   <div class="m-head"><h2>🎉 Xarid qildi — mijozga qo'shamizmi?</h2><button class="m-x" onclick="closeModal()">✕</button></div>
   <p style="font-size:13.5px;color:var(--muted);margin-bottom:14px"><b>${esc(l.name)}</b> mijozlar ro'yxatiga qo'shilsinmi? Ma'lumotlar liddan avtomatik olinadi.</p>
   <div class="grid2">
-    <div class="field"><label>Buyurtma summasi (so'm)</label><input id="cv_monthly" type="number" min="0" value="${l.budget||""}"></div>
+    <div class="field"><label>Buyurtma summasi ($)</label><input id="cv_monthly" type="number" min="0" value="${l.budget||""}"></div>
     <div class="field"><label>Boshlanish sanasi</label><input id="cv_start" type="date" value="${todayISO()}"></div>
   </div>
   <div class="grid2">
@@ -1548,7 +1548,7 @@ function clientForm(id){
   </div>
   <div class="grid2">
     <div class="field"><label>Mahsulot / parda turi</label><select id="cf_service">${selOpts(DB.settings.services, c.service||DB.settings.services[0])}</select></div>
-    <div class="field"><label>Buyurtma summasi (so'm)</label><input id="cf_monthly" type="number" min="0" value="${c.monthly||""}"></div>
+    <div class="field"><label>Buyurtma summasi ($)</label><input id="cf_monthly" type="number" min="0" value="${c.monthly||""}"></div>
   </div>
   <div class="grid2">
     <div class="field"><label>Sotuvchi</label><select id="cf_owner"><option value="">—</option>${selOpts(teamNames(), c.owner)}</select></div>
@@ -1639,10 +1639,10 @@ function dl(name, content, type){
 function exportCSV(kind){
   let head, rows;
   if(kind==="leads"){
-    head=["Ism","Manzil / obyekt","Telefon","Instagram","Manba","Mahsulot","Summa (so'm)","Sotuvchi","Bosqich","Keyingi qadam","Bekor sababi","Izoh","Yaratilgan"];
+    head=["Ism","Manzil / obyekt","Telefon","Instagram","Manba","Mahsulot","Summa ($)","Sotuvchi","Bosqich","Keyingi qadam","Bekor sababi","Izoh","Yaratilgan"];
     rows=DB.leads.map(l=>[l.name,l.company,l.phone,l.instagram,l.source,l.service,l.budget,l.owner,stageOf(l.stage).name,l.next_action,l.lost_reason,l.notes,(l.created_at||"").slice(0,10)]);
   }else{
-    head=["Ism","Manzil / obyekt","Telefon","Mahsulot","Summa (so'm)","Sotuvchi","Boshlangan","Holat","Izoh"];
+    head=["Ism","Manzil / obyekt","Telefon","Mahsulot","Summa ($)","Sotuvchi","Boshlangan","Holat","Izoh"];
     rows=DB.clients.map(c=>[c.name,c.company,c.phone,c.service,c.monthly,c.owner,c.start_date,c.status,c.notes]);
   }
   const csv="﻿"+[head].concat(rows).map(r=>r.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(",")).join("\n");
@@ -1666,12 +1666,12 @@ function importJSON(inp){
 }
 async function seedDemo(){
   const demo=[
-    {name:"Jasur Toshpo'latov", company:"Yunusobod, 4 xonali kvartira", phone:"+998901112233", instagram:"jasur_home", source:"Instagram", service:"Portyera", budget:4500000, stage:"yangi", notes:"Zal va yotoqxonaga qalin parda kerak, IG'dan yozdi"},
-    {name:"Dilnoza Rahimova", company:"Chilonzor, ofis", phone:"+998935556677", source:"Tavsiya", service:"Rulon parda", budget:2800000, stage:"kotarmadi", next_action:todayISO()},
-    {name:"Sardor Aliyev", company:"Sergeli, hovli uy", phone:"+998971234567", source:"Telegram", service:"To'liq to'plam", budget:9500000, stage:"qayta"},
-    {name:"Malika Yusupova", company:"Mirzo Ulug'bek, kvartira", instagram:"malika_uy", source:"Instagram", service:"Tyul", budget:1900000, stage:"showroom"},
-    {name:"Nodira Ismoilova", company:"Yashnobod, kvartira", phone:"+998945551122", source:"Instagram", service:"Jalyuzi", budget:3200000, stage:"zamer"},
-    {name:"Bekzod Karimov", company:"Yakkasaroy, restoran", phone:"+998909876543", source:"Do'kondan", service:"Rim pardasi", budget:7200000, stage:WON},
+    {name:"Jasur Toshpo'latov", company:"Yunusobod, 4 xonali kvartira", phone:"+998901112233", instagram:"jasur_home", source:"Instagram", service:"Portyera", budget:1200, stage:"yangi", notes:"Zal va yotoqxonaga qalin parda kerak, IG'dan yozdi"},
+    {name:"Dilnoza Rahimova", company:"Chilonzor, ofis", phone:"+998935556677", source:"Tavsiya", service:"Rulon parda", budget:750, stage:"kotarmadi", next_action:todayISO()},
+    {name:"Sardor Aliyev", company:"Sergeli, hovli uy", phone:"+998971234567", source:"Telegram", service:"To'liq to'plam", budget:2500, stage:"qayta"},
+    {name:"Malika Yusupova", company:"Mirzo Ulug'bek, kvartira", instagram:"malika_uy", source:"Instagram", service:"Tyul", budget:500, stage:"showroom"},
+    {name:"Nodira Ismoilova", company:"Yashnobod, kvartira", phone:"+998945551122", source:"Instagram", service:"Jalyuzi", budget:900, stage:"zamer"},
+    {name:"Bekzod Karimov", company:"Yakkasaroy, restoran", phone:"+998909876543", source:"Do'kondan", service:"Rim pardasi", budget:1800, stage:WON},
   ];
   for(const d of demo){ try{ await createLead(d); }catch(e){} }
   const t1=todayISO(), team=teamNames();
