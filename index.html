@@ -1311,7 +1311,7 @@ function renderSettings(){
     </div>
     <div class="card"><h3>📋 Sotuv skripti — AI tahlil etaloni</h3>
       <p style="font-size:12.5px;color:var(--muted);margin-bottom:10px">Har bir suhbat transkripti shu skript bilan solishtiriladi va mosligi % da baholanadi (kartochkalar, Qo'ng'iroqlar sahifasi va kechki 22:00 hisobot). O'zgartirish keyingi qo'ng'iroqlardan kuchga kiradi.</p>
-      <textarea id="set_script" style="width:100%;min-height:150px;font-size:12.5px;line-height:1.5" placeholder="Parda sotuv skriptini shu yerga joylang: salomlashish, xona/deraza ehtiyojini aniqlash, mahsulot va matolarni taqdim etish, o'lchovga yozilish, narx/e'tirozlar, buyurtmani yakunlash…">${esc(DB.settings.sales_script||"")}</textarea>
+      <textarea id="set_script" style="width:100%;min-height:460px;font-size:15px;line-height:1.8;padding:18px 20px;resize:vertical;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,sans-serif" placeholder="Parda sotuv skriptini shu yerga joylang: salomlashish, xona/deraza ehtiyojini aniqlash, mahsulot va matolarni taqdim etish, o'lchovga yozilish, narx/e'tirozlar, buyurtmani yakunlash…">${esc(DB.settings.sales_script||"")}</textarea>
       <div style="margin-top:8px;display:flex;justify-content:flex-end"><button class="btn btn-sky btn-sm" onclick="saveScript()">Saqlash</button></div>
     </div>
     <div class="card"><h3>Ma'lumotlar</h3>
