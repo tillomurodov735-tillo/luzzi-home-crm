@@ -60,14 +60,14 @@ input,select,textarea{font-family:inherit;font-size:14px;color:var(--text)}
 #content{flex:1;overflow-y:auto;padding:24px 26px 40px}
 
 .page-head{display:flex;align-items:center;gap:14px;margin-bottom:20px;flex-wrap:wrap}
-.page-head h1{font-size:22px;font-weight:800}
+.page-head h1{font-size:23px;font-weight:800;letter-spacing:-.4px}
 .page-head .grow{flex:1}
 
 .btn{border:none;border-radius:10px;padding:9px 16px;font-size:13.5px;font-weight:700;transition:.15s;display:inline-flex;align-items:center;gap:7px}
 .btn-primary{background:var(--navy);color:#fff}
 .btn-primary:hover{background:var(--navy-3)}
 .btn-sky{background:var(--sky);color:var(--navy-2)}
-.btn-sky:hover{background:#a1d4f4}
+.btn-sky:hover{background:#b8873a;color:#fff}
 .btn-line{background:#fff;color:var(--navy);border:1px solid var(--line)}
 .btn-line:hover{border-color:var(--navy-4)}
 .btn-danger{background:var(--red-bg);color:var(--red)}
@@ -76,14 +76,15 @@ input,select,textarea{font-family:inherit;font-size:14px;color:var(--text)}
 
 /* ============ Cards / stats ============ */
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:14px;margin-bottom:20px}
-.stat{background:var(--card);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow)}
-.stat .v{font-size:25px;font-weight:800;line-height:1.15;letter-spacing:-.5px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow);transition:transform .18s, box-shadow .18s, border-color .18s}
+.stat:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(124,45,19,.13);border-color:#dfcdae}
+.stat .v{font-size:26px;font-weight:800;line-height:1.15;letter-spacing:-.6px}
 .stat .l{font-size:12px;color:var(--muted);margin-top:3px;font-weight:600}
 .stat .d{font-size:11.5px;margin-top:5px;color:var(--muted-2)}
 .stat .v.green{color:var(--green)}
 .stat .v.sky{color:var(--blue)}
-.card{background:var(--card);border-radius:var(--r);padding:20px;box-shadow:var(--shadow)}
-.card h3{font-size:14.5px;font-weight:800;margin-bottom:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px;box-shadow:var(--shadow)}
+.card h3{font-size:14.5px;font-weight:800;margin-bottom:14px;letter-spacing:-.2px}
 .grid-2{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;align-items:start}
 @media(max-width:1000px){.grid-2{grid-template-columns:1fr}}
 
@@ -131,7 +132,7 @@ input,select,textarea{font-family:inherit;font-size:14px;color:var(--text)}
 .cards{padding:2px 9px 12px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;min-height:56px}
 .col.dragover{outline:2px dashed var(--navy-4);outline-offset:-4px}
 .lead{background:var(--card);border-radius:12px;padding:11px 12px;box-shadow:var(--shadow);cursor:pointer;border-left:4px solid transparent;transition:.12s}
-.lead:hover{transform:translateY(-1px);box-shadow:0 4px 18px rgba(22,41,79,.13)}
+.lead:hover{transform:translateY(-1px);box-shadow:0 4px 18px rgba(124,45,19,.16)}
 .lead.dragging{opacity:.45}
 .lead-top{display:flex;gap:9px;align-items:center}
 .lead .nm{font-weight:700;font-size:13.5px;line-height:1.25}
@@ -236,6 +237,25 @@ tbody tr:last-child td{border:none}
 .empty{text-align:center;padding:44px 20px;color:var(--muted)}
 .empty .big{font-size:38px;margin-bottom:10px}
 
+/* Kirish oynasi — brend bloki */
+.login-brand{text-align:center;margin:4px 0 16px}
+.lb-mono{position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;width:60px;height:60px;
+  border-radius:13px;background:linear-gradient(135deg,#7c2d13,#4d1a08);color:#e9c56a;
+  font-family:Georgia,"Times New Roman",serif;font-size:27px;font-weight:700;letter-spacing:1px;
+  border:1px solid rgba(233,197,106,.45);box-shadow:0 6px 20px rgba(64,25,13,.32)}
+.lb-mono::after{content:"";position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);height:11px;
+  background:#140905;box-shadow:0 0 0 .5px rgba(233,197,106,.35)}
+.lb-name{font-family:Georgia,"Times New Roman",serif;font-size:23px;font-weight:700;margin-top:11px;color:var(--navy)}
+.lb-name span{color:#b8873a}
+.lb-sub{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted-2);margin-top:3px}
+
+/* Sotuv skripti sahifasi */
+.script-box{display:block;width:100%;min-height:520px;font-family:inherit;font-size:15.5px;line-height:1.9;
+  padding:20px 24px;border:1px solid var(--line);border-radius:12px;background:#fffdf9;color:var(--text);
+  outline:none;resize:vertical}
+.script-box:focus{border-color:var(--navy-4)}
+.script-read{white-space:pre-wrap;min-height:auto;background:var(--bg);border-style:dashed}
+
 /* ============ Mobile ============ */
 @media(max-width:860px){
   #sidebar{position:fixed;top:0;left:0;bottom:0;transform:translateX(-105%);box-shadow:var(--shadow-lg)}
@@ -246,6 +266,7 @@ tbody tr:last-child td{border:none}
   .col{min-width:82vw;width:82vw}
   .grid2{grid-template-columns:1fr}
   .ld-info{grid-template-columns:1fr}
+  .script-box{min-height:360px;font-size:15px;line-height:1.8;padding:16px 17px}
 }
 /* Nazorat bloki */
 .nz-card{border:1px solid var(--red);border-left:4px solid var(--red)}
@@ -318,7 +339,7 @@ function normStages(arr){
 }
 const stageOf = id => STAGES.find(s=>s.id===id) || STAGES[0];
 
-/* Parda sotuv skripti — AI tahlil etaloni (Sozlamalar > Sotuv skriptidan o'zgartiriladi) */
+/* Parda sotuv skripti — sotuvchilar uchun qo'llanma ("Sotuv skripti" sahifasida adminlar tahrirlaydi) */
 const DEFAULT_SCRIPT = `LUZZI HOME — PARDA SOTUV SKRIPTI (0 dan savdoni yopgunicha)
 
 1) SALOMLASHISH VA TANISHUV
@@ -436,7 +457,7 @@ function fmtDur(sec){
   const h=Math.floor(sec/3600), m=Math.round((sec%3600)/60);
   if(h) return h+" soat"+(m?" "+m+" daq":"");
   if(m) return m+" daq";
-  return sec+" son";
+  return sec>0 ? "<1 daq" : "0 daq";
 }
 function initials(n){ return String(n||"?").trim().split(/\s+/).slice(0,2).map(w=>w[0]).join("").toUpperCase(); }
 /* telefonni oxirgi 9 raqamga keltirish (moslashtirish uchun) */
@@ -464,7 +485,8 @@ function untouchedLeads(){
 function lastRecDate(){ return DB.calls.reduce((m,c)=>((c.rec_date||"")>m ? c.rec_date : m), ""); }
 function nazoratCard(){
   const un = untouchedLeads(), lastRec = lastRecDate();
-  const recStale = isAdmin() && DB.leads.length>0 && (!lastRec || lastRec < agoISO(2));
+  // ogohlantirish faqat yozuvlar AVVAL tushib, keyin to'xtab qolgan bo'lsa (yozuv tizimi yo'q bo'lsa — bezovta qilmaydi)
+  const recStale = isAdmin() && !!lastRec && lastRec < agoISO(2);
   if(!un.length && !recStale) return "";
   const rows = un.slice(0,8).map(l=>`<div class="nz-row" onclick="leadDetail('${l.id}')">
       <b>${esc(l.name)}</b><span class="nz-ph">${esc(fmtPhone(l.phone))}</span>
@@ -472,7 +494,7 @@ function nazoratCard(){
       <span class="nz-age">\u23f0 ${timeAgo(l.created_at)}</span>
     </div>`).join("");
   return `<div class="card nz-card"><h3>\u26a0\ufe0f Nazorat \u2014 e'tibor kerak</h3>
-    ${un.length?`<div class="nz-sub"><b>${un.length} ta lid</b> ${UNTOUCHED_H}+ soatdan beri "${esc(stageOf(STAGES[0].id).name)}" bosqichida turibdi va qo'ng'iroq yozuvi yo'q:</div>${rows}
+    ${un.length?`<div class="nz-sub"><b>${un.length} ta lid</b> ${UNTOUCHED_H}+ soatdan beri "${esc(stageOf(STAGES[0].id).name)}" bosqichida qimirlamayapti — sotuvchi hali bog'lanmagan bo'lishi mumkin:</div>${rows}
       ${un.length>8?`<div class="nz-more" onclick="go('leads')">yana ${un.length-8} ta \u2192</div>`:""}`:""}
     ${recStale?`<div class="nz-rec">\ud83d\udcf5 Qo'ng'iroq yozuvlari ${lastRec?esc(fmtDate(lastRec))+"dan beri":"umuman"} tushmagan \u2014 operator telefonida yozib olish va Drive'ga yuklash ishlayotganini tekshiring.</div>`:""}
   </div>`;
@@ -484,7 +506,9 @@ function playRec(btn, id){
 }
 function toggleTr(id){ const el=document.getElementById(id); if(el) el.style.display = el.style.display==="none" ? "block" : "none"; }
 async function saveScript(){
-  DB.settings.sales_script = document.getElementById("set_script").value.trim();
+  const el = document.getElementById("set_script");
+  if(!el || !isAdmin()) return;
+  DB.settings.sales_script = el.value.trim();
   await saveSettings(); toast("Skript saqlandi ✓");
 }
 function avatarGrad(n){
@@ -629,7 +653,11 @@ async function deleteClient(id){
 /* ---- realtime ---- */
 function applyChange(key, p){
   const arr = DB[key], ev = p.eventType;
-  if(ev==="INSERT"){ if(!arr.find(x=>x.id===p.new.id)) key==="leads"?arr.push(p.new):arr.unshift(p.new); if(key==="leads") toast("Yangi lid: "+(p.new.name||"")); }
+  if(ev==="INSERT"){
+    if(arr.find(x=>x.id===p.new.id)) return;              // o'zimiz qo'shgan — takror xabar bermaymiz
+    key==="leads" ? arr.push(p.new) : arr.unshift(p.new);
+    if(key==="leads") toast("🔔 Yangi lid: "+(p.new.name||""));
+  }
   else if(ev==="UPDATE"){ const i=arr.findIndex(x=>x.id===p.new.id); if(i>=0) arr[i]=p.new; else arr.unshift(p.new); }
   else if(ev==="DELETE"){ const i=arr.findIndex(x=>x.id===(p.old&&p.old.id)); if(i>=0) arr.splice(i,1); }
   maybeRerender();
@@ -669,6 +697,7 @@ const PAGES = [
   {id:"tasks",     name:"Vazifalar",  ic:"✅"},
   {id:"calls",     name:"Qo'ng'iroqlar", ic:"📞"},
   {id:"clients",   name:"Mijozlar",   ic:"🤝"},
+  {id:"script",    name:"Sotuv skripti", ic:"📋"},
   {id:"settings",  name:"Sozlamalar", ic:"⚙️", admin:true},
 ];
 function allowedPage(p){ return !p.admin || isAdmin(); }
@@ -702,6 +731,7 @@ function renderPage(){
   else if(ui.page==="tasks") c.innerHTML = renderTasks();
   else if(ui.page==="calls") c.innerHTML = renderCalls();
   else if(ui.page==="clients") c.innerHTML = renderClients();
+  else if(ui.page==="script") c.innerHTML = renderScript();
   else c.innerHTML = renderSettings();
   if(ui.page==="leads" && ui.view==="kanban") setupDnD();
   c.scrollTop = scroll;
@@ -749,6 +779,8 @@ function renderDashboard(){
   // bugungi qo'ng'iroqlar mini-stat (o'ziniki / admin bo'lsa hammasi)
   const todaySec = visibleCalls().filter(c=>c.rec_date===todayISO()).reduce((s,c)=>s+Number(c.seconds||0),0);
   const nzCount = untouchedLeads().length;
+  const todayNew = leads.filter(l=>(l.created_at||"").slice(0,10)===todayISO()).length;
+  const yestNew  = leads.filter(l=>(l.created_at||"").slice(0,10)===agoISO(1)).length;
 
   return `
   <div class="page-head"><h1>Boshqaruv paneli</h1><div class="grow"></div>
@@ -760,7 +792,9 @@ function renderDashboard(){
     <div class="stat"><div class="v sky">${fm(pipeVal)}</div><div class="l">Kutilayotgan savdo</div></div>
     <div class="stat"><div class="v green">${fm(mrr)}</div><div class="l">Umumiy savdo</div><div class="d">${activeClients.length} ta faol mijoz</div></div>
     <div class="stat"><div class="v">${conv===null?"—":conv+"%"}</div><div class="l">Xaridga aylanish %</div></div>
-    <div class="stat"><div class="v">${fmtDur(todaySec)}</div><div class="l">Bugun gaplashildi</div><div class="d" style="cursor:pointer;color:var(--blue)" onclick="go('calls')">Qo'ng'iroqlar →</div></div>
+    ${DB.calls.length
+      ? `<div class="stat"><div class="v">${fmtDur(todaySec)}</div><div class="l">Bugun gaplashildi</div><div class="d" style="cursor:pointer;color:var(--blue)" onclick="go('calls')">Qo'ng'iroqlar →</div></div>`
+      : `<div class="stat"><div class="v sky">${todayNew}</div><div class="l">Bugun tushgan lid</div><div class="d">kecha — ${yestNew} ta</div></div>`}
     <div class="stat"><div class="v" style="color:${nzCount?"var(--red)":"var(--green)"}">${nzCount}</div><div class="l">Tegilmagan lid (24s+)</div>${nzCount?`<div class="d" style="color:var(--red)">qo'ng'iroq kutmoqda</div>`:""}</div>
   </div>
   ${nazoratCard()}
@@ -1104,9 +1138,10 @@ function renderCalls(){
     <tbody>${opRows}</tbody></table></div>
   <div class="card"><h3>So'nggi 14 kun — kunlik gaplashuv vaqti</h3>${chart}</div>`
   : `<div class="card empty"><div class="big">📞</div><b>Hali qo'ng'iroq ma'lumoti yo'q</b><br>
-     <span style="font-size:13px;line-height:1.7">Sotuvchilar yozuvlari Google Drive'ga tushishi bilan bu yerda avtomatik ko'rinadi.<br>
-     Buning uchun <b>Calls Sync</b> Apps Script o'rnatiladi (Supabase ulanganidan keyin).<br>
-     Hozircha "+ Qo'lda kiritish" orqali ham yozish mumkin.</span></div>`}`;
+     <span style="font-size:13px;line-height:1.7">Bu sahifa — sotuvchilar kuniga qancha gaplashganini kuzatish uchun.<br>
+     Har kuni sotuvchi (yoki admin) <b>«+ Qo'lda kiritish»</b> orqali daqiqalarni yozib boradi —<br>
+     shunda kunlik norma bajarilishi va taqqoslama jadval avtomatik chiqadi.</span><br><br>
+     <button class="btn btn-primary" onclick="callForm()">+ Qo'lda kiritish</button></div>`}`;
 }
 function callForm(){
   modal(`
@@ -1293,6 +1328,25 @@ function stAdd(){
   st.splice(st.length-2, 0, {id:"st_"+Date.now().toString(36), name, color}); // WON/LOST oldiga
   inp.value=""; saveSettings(); render(); toast("Bosqich qo'shildi ✓");
 }
+/* ==================== SOTUV SKRIPTI (hamma ko'radi, admin tahrirlaydi) ==================== */
+function renderScript(){
+  const s = DB.settings.sales_script || "";
+  return `
+  <div class="page-head"><h1>📋 Sotuv skripti</h1><div class="grow"></div>
+    ${isAdmin()?`<span style="font-size:12.5px;color:var(--muted)">Tahrirlab, «Saqlash» bosing</span>`:""}</div>
+  <div class="card">
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.6">
+      Mijoz bilan gaplashganda shu ketma-ketlikka amal qiling: salomlashish → ehtiyojni aniqlash →
+      taqdimot → showroom/o'lchovga taklif → smeta → e'tirozlar → savdoni yopish.
+      ${isAdmin()?"":"<b>Bu sahifa faqat o'qish uchun</b> — o'zgartirishni admin kiritadi."}
+    </p>
+    ${isAdmin()
+      ? `<textarea id="set_script" class="script-box" placeholder="Parda sotuv skripti…">${esc(s)}</textarea>
+         <div style="margin-top:10px;display:flex;justify-content:flex-end"><button class="btn btn-primary" onclick="saveScript()">Saqlash</button></div>`
+      : `<div class="script-box script-read">${esc(s) || "Skript hali kiritilmagan."}</div>`}
+  </div>`;
+}
+
 function renderSettings(){
   return `
   <div class="page-head"><h1>Sozlamalar</h1></div>
@@ -1309,10 +1363,9 @@ function renderSettings(){
       </div>
       <div style="font-size:11.5px;color:var(--muted-2);margin-top:6px">daqiqa / kun / operator</div>
     </div>
-    <div class="card"><h3>📋 Sotuv skripti — AI tahlil etaloni</h3>
-      <p style="font-size:12.5px;color:var(--muted);margin-bottom:10px">Har bir suhbat transkripti shu skript bilan solishtiriladi va mosligi % da baholanadi (kartochkalar, Qo'ng'iroqlar sahifasi va kechki 22:00 hisobot). O'zgartirish keyingi qo'ng'iroqlardan kuchga kiradi.</p>
-      <textarea id="set_script" style="width:100%;min-height:460px;font-size:15px;line-height:1.8;padding:18px 20px;resize:vertical;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,sans-serif" placeholder="Parda sotuv skriptini shu yerga joylang: salomlashish, xona/deraza ehtiyojini aniqlash, mahsulot va matolarni taqdim etish, o'lchovga yozilish, narx/e'tirozlar, buyurtmani yakunlash…">${esc(DB.settings.sales_script||"")}</textarea>
-      <div style="margin-top:8px;display:flex;justify-content:flex-end"><button class="btn btn-sky btn-sm" onclick="saveScript()">Saqlash</button></div>
+    <div class="card"><h3>📋 Sotuv skripti</h3>
+      <p style="font-size:12.5px;color:var(--muted);margin-bottom:12px">Skript endi alohida sahifada — <b>sotuvchilar ham ko'radi</b> (o'zgartira olmaydi). Tahrirlash uchun o'sha sahifaga o'ting.</p>
+      <button class="btn btn-primary" onclick="go('script')">📋 Skriptni ochish</button>
     </div>
     <div class="card"><h3>Ma'lumotlar</h3>
       <div style="display:flex;flex-direction:column;gap:9px">
@@ -1338,7 +1391,8 @@ function modal(html, wide){
   document.getElementById("modalBg").classList.add("show");
   const f=box.querySelector("input,select,textarea"); if(f) setTimeout(()=>f.focus(),40);
 }
-function closeModal(){ document.getElementById("modalBg").classList.remove("show"); }
+let modalLocked = false;   // kirish oynasi — kirmaguncha yopilmaydi
+function closeModal(){ if(modalLocked) return; document.getElementById("modalBg").classList.remove("show"); }
 document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeModal(); });
 
 const selOpts = (arr,cur) => arr.map(v=>`<option value="${esc(v)}"${v===cur?" selected":""}>${esc(v)}</option>`).join("");
@@ -1364,9 +1418,12 @@ function leadForm(id){
       ? `<div class="field"><label>Sotuvchi</label><select id="lf_owner"><option value="">—</option>${selOpts(teamNames(), l.owner||ui.profile)}</select></div>`
       : `<input type="hidden" id="lf_owner" value="${esc(l.owner||ui.profile)}"><div class="field"><label>Sotuvchi</label><input value="${esc(l.owner||ui.profile)}" disabled style="opacity:.7"></div>`}
   </div>
-  <input type="hidden" id="lf_service" value="${esc(l.service||"")}">
-  <input type="hidden" id="lf_next" value="${l.next_action||""}">
-  ${id?`<div class="field"><label>Bosqich</label><select id="lf_stage">${STAGES.map(s=>`<option value="${s.id}"${s.id===l.stage?" selected":""}>${s.name}</option>`).join("")}</select></div>`:""}
+  ${id ? `<div class="grid2">
+    <div class="field"><label>Mahsulot / parda turi</label><select id="lf_service"><option value="">—</option>${selOpts(DB.settings.services, l.service||"")}</select></div>
+    <div class="field"><label>Keyingi qadam sanasi</label><input id="lf_next" type="date" value="${l.next_action||""}"></div>
+  </div>
+  <div class="field"><label>Bosqich</label><select id="lf_stage">${STAGES.map(s=>`<option value="${s.id}"${s.id===l.stage?" selected":""}>${s.name}</option>`).join("")}</select></div>`
+  : `<input type="hidden" id="lf_service" value=""><input type="hidden" id="lf_next" value="">`}
   <div class="field"><label>Izoh</label><textarea id="lf_notes" placeholder="Muhim detallar…">${esc(l.notes||"")}</textarea></div>
   <div class="m-actions">
     ${id?`<button class="btn btn-danger" onclick="confirmDeleteLead('${id}')">O'chirish</button>`:""}
@@ -1382,7 +1439,7 @@ async function saveLeadForm(id){
   const data={
     name, company:g("lf_company")||null, phone:g("lf_phone")||null,
     instagram:g("lf_ig").replace(/^@/,"")||null,
-    source:g("lf_source"), service:g("lf_service"),
+    source:g("lf_source"), service:g("lf_service")||null,
     budget:g("lf_budget")?Number(g("lf_budget")):null,
     owner:(isAdmin()?g("lf_owner"):ui.profile)||null, next_action:g("lf_next")||null,
     notes:g("lf_notes")||null,
@@ -1422,16 +1479,13 @@ function leadDetail(id){
   const st=stageOf(l.stage);
   const tl=(l.history||[]).slice().reverse();
   modal(`
-  <div class="m-head" style="margin-bottom:6px">
-    <h2 style="font-size:0">.</h2>
-    <button class="m-x" onclick="closeModal()">✕</button>
-  </div>
-  <div class="ld-head" style="margin-top:-30px">
+  <div class="ld-head">
     <span class="ava" style="background:${avatarGrad(l.name)}">${esc(initials(l.name))}</span>
-    <div style="flex:1"><div class="nm">${esc(l.name)}</div>${l.company?`<div class="co">${esc(l.company)}</div>`:""}</div>
+    <div style="flex:1;min-width:0"><div class="nm">${esc(l.name)}</div>${l.company?`<div class="co">${esc(l.company)}</div>`:""}</div>
     <select onchange="closeModal();stageChange('${l.id}',this.value)" style="padding:7px 10px;border:1.5px solid ${st.color};border-radius:9px;color:${st.color};font-weight:700;background:#fff">
       ${STAGES.map(s=>`<option value="${s.id}"${s.id===l.stage?" selected":""}>${s.name}</option>`).join("")}
     </select>
+    <button class="m-x" onclick="closeModal()" title="Yopish">✕</button>
   </div>
   <div class="ld-info">
     <div><b>Telefon</b>${l.phone?`<a href="tel:${esc(String(l.phone).replace(/\s/g,""))}">${esc(fmtPhone(l.phone))}</a>`:"—"}</div>
@@ -1591,9 +1645,15 @@ function teamByEmail(email){
   return e ? DB.settings.team.find(m=>String(m.email||"").toLowerCase()===e) : null;
 }
 function loginModal(){
+  modalLocked = !ui.profile;   // profil yo'q bo'lsa — oynani yopib bo'lmaydi
   modal(`
-  <div class="m-head"><h2>Luzzi Home — kirish</h2>${ui.profile?`<button class="m-x" onclick="closeModal()">✕</button>`:""}</div>
-  <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Email va parolingiz bilan kiring.</p>
+  ${ui.profile?`<div class="m-head"><h2 style="font-size:0">.</h2><button class="m-x" onclick="closeModal()">✕</button></div>`:""}
+  <div class="login-brand">
+    <span class="lb-mono">LH</span>
+    <div class="lb-name">Luzzi <span>Home</span></div>
+    <div class="lb-sub">Parda Studiyasi</div>
+  </div>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:14px;text-align:center">Email va parolingiz bilan kiring</p>
   <div class="field"><label>Email</label><input id="lg_email" type="email" autocomplete="username" placeholder="siz@gmail.com" onkeydown="if(event.key==='Enter')document.getElementById('lg_pin').focus()"></div>
   <div class="field"><label>Parol</label><input id="lg_pin" type="password" autocomplete="current-password" placeholder="Parolingiz" onkeydown="if(event.key==='Enter')doLogin()"></div>
   <div class="m-actions"><div class="grow"></div>
@@ -1610,7 +1670,7 @@ function doLogin(){
   } else if(m.role!=="admin"){
     toast("Bu foydalanuvchiga parol o'rnatilmagan. Admin: Sozlamalar → Jamoa'dan qo'ying.","err"); return;
   }
-  ui.profile = m.name; saveUI(); closeModal(); render();
+  ui.profile = m.name; saveUI(); modalLocked=false; closeModal(); render();
   toast("Xush kelibsiz, "+m.name+"!");
 }
 function accountModal(){
