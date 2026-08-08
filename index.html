@@ -1484,35 +1484,63 @@ async function doDeleteLead(id){
 /* ---- lead detail ---- */
 /* Qo'ng'iroq: tel: havolasi bosilgach — natija oynasi, Qo'ng'iroqlar bo'limiga yoziladi */
 function telHref(p){ return "tel:"+String(p||"").replace(/[^\d+]/g,""); }
+let _callTimer=null, _callStart=0;
 function logCall(id){
   const l=DB.leads.find(x=>x.id===id); if(!l) return;
+  _callStart=Date.now();
   modal(`
-  <div class="m-head"><h2>📞 ${esc(l.name)} — qo'ng'iroq</h2><button class="m-x" onclick="closeModal()">✕</button></div>
-  <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Suhbat tugagach davomiyligini kiriting — <b>Qo'ng'iroqlar</b> bo'limiga avtomatik tushadi.</p>
-  <div class="field"><label>Suhbat necha daqiqa davom etdi?</label><input id="cr_min" type="number" min="1" placeholder="5" onkeydown="if(event.key==='Enter')saveCallResult('${id}',true)"></div>
+  <div class="m-head"><h2>📞 ${esc(l.name)}</h2><button class="m-x" onclick="endCallModal()">✕</button></div>
+  <div style="text-align:center;padding:4px 0 14px">
+    <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Suhbat ketmoqda… tugagach <b>«Suhbat tugadi»</b> bosing — vaqt o'zi hisoblanadi</div>
+    <div id="cr_timer" style="font-size:46px;font-weight:800;letter-spacing:1px;font-variant-numeric:tabular-nums;color:var(--navy)">00:00</div>
+    <div style="font-size:11.5px;color:var(--muted-2);margin-top:4px">⏱ avtomatik sekundomer</div>
+  </div>
   <div class="m-actions">
     <button class="btn btn-danger" onclick="saveCallResult('${id}',false)">📵 Ko'tarmadi</button>
     <div class="grow"></div>
-    <button class="btn btn-line" onclick="closeModal()">Keyinroq</button>
-    <button class="btn btn-primary" onclick="saveCallResult('${id}',true)">✓ Saqlash</button>
+    <button class="btn btn-primary" onclick="saveCallResult('${id}',true)">✓ Suhbat tugadi</button>
+  </div>
+  <div style="margin-top:12px;text-align:center;font-size:12px;color:var(--muted-2)">
+    yoki <a style="color:var(--blue);cursor:pointer;font-weight:600" onclick="manualMinRow(this)">daqiqani qo'lda kiritish</a>
+  </div>
+  <div id="cr_manual" class="add-row" style="display:none;margin-top:8px;justify-content:center">
+    <input id="cr_min" type="number" min="1" placeholder="daqiqa" style="max-width:130px" onkeydown="if(event.key==='Enter')saveCallResult('${id}','manual')">
+    <button class="btn btn-sky btn-sm" onclick="saveCallResult('${id}','manual')">Saqlash</button>
   </div>`);
-  setTimeout(()=>{ const el=document.getElementById("cr_min"); if(el) el.focus(); },60);
+  clearInterval(_callTimer);
+  _callTimer=setInterval(()=>{
+    const el=document.getElementById("cr_timer");
+    if(!el){ clearInterval(_callTimer); return; }
+    const s=Math.floor((Date.now()-_callStart)/1000);
+    el.textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
+  },500);
 }
-async function saveCallResult(id, answered){
+function manualMinRow(a){
+  const r=document.getElementById("cr_manual"); if(r) r.style.display="flex";
+  a.parentElement.style.display="none";
+  const el=document.getElementById("cr_min"); if(el) el.focus();
+}
+function endCallModal(){ clearInterval(_callTimer); _callTimer=null; closeModal(); }
+async function saveCallResult(id, mode){
   const l=DB.leads.find(x=>x.id===id); if(!l) return;
-  let min=0;
-  if(answered){
-    min=Number((document.getElementById("cr_min")||{}).value)||0;
+  let seconds=0, answered=true;
+  if(mode===false){ answered=false; seconds=0; }
+  else if(mode==="manual"){
+    const min=Number((document.getElementById("cr_min")||{}).value)||0;
     if(!min){ toast("Daqiqa kiriting","err"); return; }
+    seconds=Math.round(min*60);
+  }else{ // sekundomer
+    seconds=Math.max(1, Math.round((Date.now()-_callStart)/1000));
   }
+  clearInterval(_callTimer); _callTimer=null;
   const dig=String(l.phone||"").replace(/\D/g,"");
   const n=new Date(), p2=x=>String(x).padStart(2,"0");
   const fname=`${dig||"000000"}_${String(n.getFullYear()).slice(2)}${p2(n.getMonth()+1)}${p2(n.getDate())}_${p2(n.getHours())}${p2(n.getMinutes())}${p2(n.getSeconds())}`;
   try{
     await createCall({ operator:ui.profile, rec_date:todayISO(),
-      seconds:Math.round(min*60), cnt:1, answered, phone:l.phone||null, file_name:fname });
-    await updateLead(id, {}, answered?`📞 Qo'ng'iroq — ${min} daqiqa`:"📵 Qo'ng'iroq — ko'tarmadi").catch(()=>{});
-    closeModal(); render(); toast(answered?`✓ ${min} daqiqa — Qo'ng'iroqlarga qo'shildi`:"📵 Ko'tarmadi belgilandi");
+      seconds, cnt:1, answered, phone:l.phone||null, file_name:fname });
+    await updateLead(id, {}, answered?`📞 Qo'ng'iroq — ${fmtDur(seconds)}`:"📵 Qo'ng'iroq — ko'tarmadi").catch(()=>{});
+    closeModal(); render(); toast(answered?`✓ ${fmtDur(seconds)} — Qo'ng'iroqlarga qo'shildi`:"📵 Ko'tarmadi belgilandi");
   }catch(e){ console.error(e); toast("Xato: saqlanmadi","err"); }
 }
 function leadDetail(id){
