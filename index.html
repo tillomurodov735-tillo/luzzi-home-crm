@@ -146,6 +146,11 @@ input,select,textarea{font-family:inherit;font-size:14px;color:var(--text)}
 .chip.src{background:var(--blue-bg);color:var(--blue)}
 .lead .lost{font-size:11px;color:var(--red);margin-top:6px;font-style:italic}
 .empty-col{font-size:12px;color:var(--muted-2);text-align:center;padding:12px 0}
+/* Qo'ng'iroq tugmasi */
+.lead-call{margin-left:auto;flex-shrink:0;width:33px;height:33px;border-radius:9px;border:none;background:var(--green-bg);color:var(--green);font-size:15px;display:flex;align-items:center;justify-content:center;text-decoration:none;transition:.12s}
+.lead-call:hover{background:var(--green);color:#fff;transform:scale(1.09)}
+.call-cta{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:13px;margin-bottom:14px;background:var(--green);color:#fff;border-radius:12px;font-weight:800;font-size:15px;text-decoration:none;box-shadow:0 4px 14px rgba(47,143,91,.3);transition:.14s}
+.call-cta:hover{background:#267a4c;transform:translateY(-1px);color:#fff}
 
 /* ============ Table ============ */
 .tbl-wrap{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);overflow-x:auto}
@@ -851,7 +856,8 @@ function leadCard(l){
   return `<div class="lead" draggable="true" data-id="${l.id}" onclick="leadDetail('${l.id}')" style="border-left-color:${st.color}">
     <div class="lead-top">
       <span class="ava" style="background:${avatarGrad(l.name)};width:32px;height:32px;font-size:12px">${esc(initials(l.name))}</span>
-      <div><div class="nm">${esc(l.name)}</div>${l.company?`<div class="co">${esc(l.company)}</div>`:""}</div>
+      <div style="flex:1;min-width:0"><div class="nm">${esc(l.name)}</div>${l.company?`<div class="co">${esc(l.company)}</div>`:""}</div>
+      ${l.phone?`<a class="lead-call" href="${telHref(l.phone)}" title="Qo'ng'iroq: ${esc(fmtPhone(l.phone))}" onclick="event.stopPropagation();logCall('${l.id}')">📞</a>`:""}
     </div>
     <div class="row">
       ${l.service?`<span class="chip svc">${esc(l.service)}</span>`:""}
@@ -1396,6 +1402,8 @@ function closeModal(){ if(modalLocked) return; document.getElementById("modalBg"
 document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeModal(); });
 
 const selOpts = (arr,cur) => arr.map(v=>`<option value="${esc(v)}"${v===cur?" selected":""}>${esc(v)}</option>`).join("");
+/* joriy qiymat ro'yxatda bo'lmasa ham saqlanadi (masalan Meta manbasi "Luzzi Home (Meta)") */
+const selOptsIn = (arr,cur) => selOpts((cur && !arr.includes(cur)) ? [cur, ...arr] : arr, cur);
 
 /* ---- lead form ---- */
 function leadForm(id){
@@ -1410,16 +1418,16 @@ function leadForm(id){
   </div>
   <div class="grid2">
     <div class="field"><label>Instagram</label><input id="lf_ig" value="${esc(l.instagram||"")}" placeholder="@mijoz_uz"></div>
-    <div class="field"><label>Manba</label><select id="lf_source">${selOpts(DB.settings.sources, l.source||DB.settings.sources[0])}</select></div>
+    <div class="field"><label>Manba</label><select id="lf_source">${selOptsIn(DB.settings.sources, l.source||DB.settings.sources[0])}</select></div>
   </div>
   <div class="grid2">
     <div class="field"><label>Buyurtma summasi ($)</label><input id="lf_budget" type="number" min="0" value="${l.budget||""}" placeholder="1500"></div>
     ${isAdmin()
-      ? `<div class="field"><label>Sotuvchi</label><select id="lf_owner"><option value="">—</option>${selOpts(teamNames(), l.owner||ui.profile)}</select></div>`
+      ? `<div class="field"><label>Sotuvchi</label><select id="lf_owner"><option value="">—</option>${selOptsIn(teamNames(), l.owner||ui.profile)}</select></div>`
       : `<input type="hidden" id="lf_owner" value="${esc(l.owner||ui.profile)}"><div class="field"><label>Sotuvchi</label><input value="${esc(l.owner||ui.profile)}" disabled style="opacity:.7"></div>`}
   </div>
   ${id ? `<div class="grid2">
-    <div class="field"><label>Mahsulot / parda turi</label><select id="lf_service"><option value="">—</option>${selOpts(DB.settings.services, l.service||"")}</select></div>
+    <div class="field"><label>Mahsulot / parda turi</label><select id="lf_service"><option value="">—</option>${selOptsIn(DB.settings.services, l.service||"")}</select></div>
     <div class="field"><label>Keyingi qadam sanasi</label><input id="lf_next" type="date" value="${l.next_action||""}"></div>
   </div>
   <div class="field"><label>Bosqich</label><select id="lf_stage">${STAGES.map(s=>`<option value="${s.id}"${s.id===l.stage?" selected":""}>${s.name}</option>`).join("")}</select></div>`
@@ -1474,6 +1482,13 @@ async function doDeleteLead(id){
 }
 
 /* ---- lead detail ---- */
+/* Qo'ng'iroq: tel: havolasi + tarixga yozish */
+function telHref(p){ return "tel:"+String(p||"").replace(/[^\d+]/g,""); }
+function logCall(id){
+  const l=DB.leads.find(x=>x.id===id); if(!l||!l.phone) return;
+  toast("📞 "+fmtPhone(l.phone)+" — qo'ng'iroq ochilmoqda…");
+  updateLead(id, {}, "📞 Qo'ng'iroq qilindi").catch(()=>{});
+}
 function leadDetail(id){
   const l=DB.leads.find(x=>x.id===id); if(!l) return;
   const st=stageOf(l.stage);
@@ -1487,8 +1502,9 @@ function leadDetail(id){
     </select>
     <button class="m-x" onclick="closeModal()" title="Yopish">✕</button>
   </div>
+  ${l.phone?`<a class="call-cta" href="${telHref(l.phone)}" onclick="logCall('${l.id}')">📞 Qo'ng'iroq qilish · ${esc(fmtPhone(l.phone))}</a>`:""}
   <div class="ld-info">
-    <div><b>Telefon</b>${l.phone?`<a href="tel:${esc(String(l.phone).replace(/\s/g,""))}">${esc(fmtPhone(l.phone))}</a>`:"—"}</div>
+    <div><b>Telefon</b>${l.phone?`<a href="${telHref(l.phone)}" onclick="logCall('${l.id}')">${esc(fmtPhone(l.phone))}</a>`:"—"}</div>
     <div><b>Instagram</b>${l.instagram?`<a href="https://instagram.com/${esc(l.instagram)}" target="_blank">@${esc(l.instagram)}</a>`:"—"}</div>
     <div><b>Mahsulot</b>${esc(l.service||"—")}</div>
     <div><b>Buyurtma summasi</b>${l.budget?fm(l.budget):"—"}</div>
