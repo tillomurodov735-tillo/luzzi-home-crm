@@ -1482,12 +1482,38 @@ async function doDeleteLead(id){
 }
 
 /* ---- lead detail ---- */
-/* Qo'ng'iroq: tel: havolasi + tarixga yozish */
+/* Qo'ng'iroq: tel: havolasi bosilgach — natija oynasi, Qo'ng'iroqlar bo'limiga yoziladi */
 function telHref(p){ return "tel:"+String(p||"").replace(/[^\d+]/g,""); }
 function logCall(id){
-  const l=DB.leads.find(x=>x.id===id); if(!l||!l.phone) return;
-  toast("📞 "+fmtPhone(l.phone)+" — qo'ng'iroq ochilmoqda…");
-  updateLead(id, {}, "📞 Qo'ng'iroq qilindi").catch(()=>{});
+  const l=DB.leads.find(x=>x.id===id); if(!l) return;
+  modal(`
+  <div class="m-head"><h2>📞 ${esc(l.name)} — qo'ng'iroq</h2><button class="m-x" onclick="closeModal()">✕</button></div>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Suhbat tugagach davomiyligini kiriting — <b>Qo'ng'iroqlar</b> bo'limiga avtomatik tushadi.</p>
+  <div class="field"><label>Suhbat necha daqiqa davom etdi?</label><input id="cr_min" type="number" min="1" placeholder="5" onkeydown="if(event.key==='Enter')saveCallResult('${id}',true)"></div>
+  <div class="m-actions">
+    <button class="btn btn-danger" onclick="saveCallResult('${id}',false)">📵 Ko'tarmadi</button>
+    <div class="grow"></div>
+    <button class="btn btn-line" onclick="closeModal()">Keyinroq</button>
+    <button class="btn btn-primary" onclick="saveCallResult('${id}',true)">✓ Saqlash</button>
+  </div>`);
+  setTimeout(()=>{ const el=document.getElementById("cr_min"); if(el) el.focus(); },60);
+}
+async function saveCallResult(id, answered){
+  const l=DB.leads.find(x=>x.id===id); if(!l) return;
+  let min=0;
+  if(answered){
+    min=Number((document.getElementById("cr_min")||{}).value)||0;
+    if(!min){ toast("Daqiqa kiriting","err"); return; }
+  }
+  const dig=String(l.phone||"").replace(/\D/g,"");
+  const n=new Date(), p2=x=>String(x).padStart(2,"0");
+  const fname=`${dig||"000000"}_${String(n.getFullYear()).slice(2)}${p2(n.getMonth()+1)}${p2(n.getDate())}_${p2(n.getHours())}${p2(n.getMinutes())}${p2(n.getSeconds())}`;
+  try{
+    await createCall({ operator:ui.profile, rec_date:todayISO(),
+      seconds:Math.round(min*60), cnt:1, answered, phone:l.phone||null, file_name:fname });
+    await updateLead(id, {}, answered?`📞 Qo'ng'iroq — ${min} daqiqa`:"📵 Qo'ng'iroq — ko'tarmadi").catch(()=>{});
+    closeModal(); render(); toast(answered?`✓ ${min} daqiqa — Qo'ng'iroqlarga qo'shildi`:"📵 Ko'tarmadi belgilandi");
+  }catch(e){ console.error(e); toast("Xato: saqlanmadi","err"); }
 }
 function leadDetail(id){
   const l=DB.leads.find(x=>x.id===id); if(!l) return;
