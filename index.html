@@ -508,8 +508,60 @@ function nazoratCard(){
 }
 /* Tinglash: tugma o'rniga Drive'ning o'z audio pleyerini (iframe) ochadi.
    To'g'ridan <audio src> ishlamaydi: Drive application/octet-stream+nosniff beradi. */
-function playRec(btn, id){
-  btn.outerHTML = '<iframe src="https://drive.google.com/file/d/' + id + '/preview" width="320" height="100" style="border:0;border-radius:8px;background:#000" allow="autoplay"></iframe>';
+function playRec(btn, id, url){
+  if(url){
+    btn.outerHTML = '<audio controls autoplay src="'+url+'" style="height:36px;vertical-align:middle;max-width:100%"></audio>';
+  }else{
+    btn.outerHTML = '<iframe src="https://drive.google.com/file/d/' + id + '/preview" width="320" height="100" style="border:0;border-radius:8px;background:#000" allow="autoplay"></iframe>';
+  }
+}
+/* ===== Qo'ng'iroq yozuvlarini yuklash (Samsung m4a fayllari) ===== */
+// fayl nomidan raqam/sana/vaqt: "Запись вызовов 998859563_260813_155921.m4a"
+function parseRecName(name){
+  const m = String(name).match(/(\d{6,15})_(\d{2})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/);
+  if(!m) return null;
+  return { phone:m[1], date:`20${m[2]}-${m[3]}-${m[4]}`, time:`${m[5]}:${m[6]}:${m[7]}` };
+}
+// audio faylning aniq davomiyligi (soniya) — brauzer o'qiydi = gaplashilgan vaqt
+function audioDuration(file){
+  return new Promise(res=>{
+    let done=false; const fin=v=>{ if(!done){ done=true; res(isFinite(v)&&v>0?Math.round(v):0); } };
+    try{
+      const url=URL.createObjectURL(file), a=new Audio();
+      a.preload="metadata";
+      a.onloadedmetadata=()=>{ const d=a.duration; URL.revokeObjectURL(url); fin(d); };
+      a.onerror=()=>{ URL.revokeObjectURL(url); fin(0); };
+      a.src=url;
+      setTimeout(()=>fin(a.duration||0), 9000);
+    }catch(e){ fin(0); }
+  });
+}
+async function uploadRecordings(input){
+  const files=[...(input.files||[])]; input.value="";
+  if(!files.length) return;
+  if(!REMOTE){ toast("Yuklash faqat jonli (Supabase) rejimда ishlaydi","err"); return; }
+  toast(`⏳ ${files.length} ta fayl yuklanmoqda…`);
+  let added=0, dup=0, bad=0, failed=0;
+  for(const f of files){
+    const meta=parseRecName(f.name);
+    if(!meta){ bad++; continue; }                                   // qo'ng'iroq yozuvi emas
+    if(DB.calls.some(c=>c.file_name===f.name)){ dup++; continue; }  // allaqachon yuklangan
+    try{
+      const seconds=await audioDuration(f);
+      const path=`${meta.phone}_${meta.date}_${meta.time}.m4a`.replace(/[^\w.\-]/g,"_");
+      let rec_url=null;
+      try{
+        const up=await sb.storage.from("recordings").upload(path, f, {upsert:true, contentType:"audio/mp4"});
+        if(!up.error) rec_url=sb.storage.from("recordings").getPublicUrl(path).data.publicUrl;
+        else console.error("storage:", up.error);
+      }catch(e){ console.error("storage:",e); }
+      await createCall({ operator:ui.profile, rec_date:meta.date, rec_time:meta.time,
+        seconds, cnt:1, answered:true, phone:meta.phone, file_name:f.name, rec_url });
+      added++;
+    }catch(e){ console.error(e); failed++; }
+  }
+  render();
+  toast(`✓ ${added} yangi yozuv${dup?` · ${dup} takror`:""}${bad?` · ${bad} mos emas`:""}${failed?` · ${failed} xato`:""}`, failed?"err":"");
 }
 function toggleTr(id){ const el=document.getElementById(id); if(el) el.style.display = el.style.display==="none" ? "block" : "none"; }
 async function saveScript(){
@@ -1133,6 +1185,7 @@ function renderCalls(){
       <button class="${days===7?"on":""}" onclick="setF('callsPeriod',7)">7 kun</button>
       <button class="${days===30?"on":""}" onclick="setF('callsPeriod',30)">30 kun</button>
     </div>
+    <label class="btn btn-primary" style="cursor:pointer">📤 Yozuvlarni yuklash<input type="file" accept="audio/*,.m4a" multiple style="display:none" onchange="uploadRecordings(this)"></label>
     <button class="btn btn-line" onclick="callForm()">+ Qo'lda kiritish</button></div>
   <div class="stats">
     <div class="stat"><div class="v sky">${fmtDur(totalSec)}</div><div class="l">Jami gaplashilgan (${days===1?"bugun":days+" kun"})</div></div>
@@ -1146,10 +1199,13 @@ function renderCalls(){
     <tbody>${opRows}</tbody></table></div>
   <div class="card"><h3>So'nggi 14 kun — kunlik gaplashuv vaqti</h3>${chart}</div>`
   : `<div class="card empty"><div class="big">📞</div><b>Hali qo'ng'iroq ma'lumoti yo'q</b><br>
-     <span style="font-size:13px;line-height:1.7">Bu sahifa — sotuvchilar kuniga qancha gaplashganini kuzatish uchun.<br>
-     Har kuni sotuvchi (yoki admin) <b>«+ Qo'lda kiritish»</b> orqali daqiqalarni yozib boradi —<br>
-     shunda kunlik norma bajarilishi va taqqoslama jadval avtomatik chiqadi.</span><br><br>
-     <button class="btn btn-primary" onclick="callForm()">+ Qo'lda kiritish</button></div>`}`;
+     <span style="font-size:13px;line-height:1.7">Har kuni sotuvchi <b>«📤 Yozuvlarni yuklash»</b> orqali telefon qo'ng'iroq yozuvlarини (Recordings/Call) tanlab yuklaydi —<br>
+     CRM o'zi daqiqa, mijoz va tinglash tugmasini qo'shadi.<br>
+     Yoki <b>«+ Qo'lda kiritish»</b> orqali daqiqani qo'lda yozsa ham bo'ladi.</span><br><br>
+     <div style="display:flex;gap:9px;justify-content:center;flex-wrap:wrap">
+       <label class="btn btn-primary" style="cursor:pointer">📤 Yozuvlarni yuklash<input type="file" accept="audio/*,.m4a" multiple style="display:none" onchange="uploadRecordings(this)"></label>
+       <button class="btn btn-line" onclick="callForm()">+ Qo'lda kiritish</button>
+     </div></div>`}`;
 }
 function callForm(){
   modal(`
@@ -1582,7 +1638,7 @@ function leadDetail(id){
       <div style="flex:1;min-width:0"><div><b>${ms?"Ko'tarmadi":fmtDur(c.seconds)}</b> <span class="t">· ${fmtDate(c.rec_date)}${tm?" "+tm:""}${c.operator?" · "+esc(c.operator):""}</span>${pc!=null?` <span class="chip" style="background:${pc>=70?"var(--green-bg)":pc>=40?"var(--amber-bg)":"var(--red-bg)"};color:${pc>=70?"var(--green)":pc>=40?"var(--amber)":"var(--red)"}">📋 skript ${pc}%</span>`:""}</div>
       ${c.ai_summary?`<div class="t" style="margin-top:3px">🤖 ${esc(c.ai_summary)}</div>`:""}
       ${c.transcript?`<div class="t" style="color:var(--blue);cursor:pointer;margin-top:3px;font-weight:600" onclick="toggleTr('tr_${c.id}')">📝 Suhbat matni</div><div id="tr_${c.id}" style="display:none;white-space:pre-wrap;font-size:12px;background:var(--bg);border-radius:8px;padding:9px 11px;margin-top:5px;max-height:260px;overflow:auto">${esc(c.transcript)}</div>`:""}</div>
-      ${c.drive_id?`<div style="align-self:center;flex-shrink:0" onclick="event.stopPropagation()"><button class="btn btn-line btn-sm" onclick="playRec(this,'${esc(c.drive_id)}')">▶ Tinglash</button></div>`:""}</div>`;
+      ${(c.rec_url||c.drive_id)?`<div style="align-self:center;flex-shrink:0" onclick="event.stopPropagation()"><button class="btn btn-line btn-sm" onclick="playRec(this,'${esc(c.drive_id||"")}','${esc(c.rec_url||"")}')">▶ Tinglash</button></div>`:""}</div>`;
     }).join("")}</div>`; })()}
   <h3 style="font-size:13px">Tarix</h3>
   <div class="tl">${tl.length?tl.map((h,i)=>`<div class="tl-it"><div class="tl-n">${tl.length-i}</div><div><div>${esc(h.action)} <span style="color:var(--blue);font-weight:600">· ${esc(h.by||"—")}</span></div><div class="t">${timeAgo(h.at)}</div></div></div>`).join(""):`<div style="color:var(--muted);font-size:13px">Bo'sh</div>`}</div>
