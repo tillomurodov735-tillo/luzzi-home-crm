@@ -151,8 +151,26 @@ input,select,textarea{font-family:inherit;font-size:14px;color:var(--text)}
 /* Qo'ng'iroq tugmasi */
 .lead-call{margin-left:auto;flex-shrink:0;width:33px;height:33px;border-radius:9px;border:none;background:var(--green-bg);color:var(--green);font-size:15px;display:flex;align-items:center;justify-content:center;text-decoration:none;transition:.12s}
 .lead-call:hover{background:var(--green);color:#fff;transform:scale(1.09)}
+.lead-when{font-size:10.5px;color:var(--muted-2);margin-top:7px;font-weight:600}
 .call-cta{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:13px;margin-bottom:14px;background:var(--green);color:#fff;border-radius:12px;font-weight:800;font-size:15px;text-decoration:none;box-shadow:0 4px 14px rgba(47,143,91,.3);transition:.14s}
 .call-cta:hover{background:#267a4c;transform:translateY(-1px);color:#fff}
+/* Sana oralig'i tanlagichi */
+.rng{position:relative;display:inline-block}
+.rng-btn{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:13.5px;font-weight:700;color:var(--navy);cursor:pointer;transition:.12s}
+.rng-btn:hover{border-color:var(--navy-4)}
+.rng-ar{color:var(--muted-2);font-size:11px}
+.rng-menu{position:absolute;top:calc(100% + 6px);right:0;z-index:70;width:300px;max-width:88vw;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-lg);padding:12px;display:none}
+.rng.open .rng-menu{display:block;animation:pop .15s}
+.rng-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rng-opt{padding:9px 10px;border:none;border-radius:9px;background:var(--bg);color:var(--text);font-size:12.5px;font-weight:600;text-align:center;transition:.12s;cursor:pointer}
+.rng-opt:hover{background:var(--sky-soft)}
+.rng-opt.on{background:var(--navy);color:#fff}
+.rng-cust{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.rng-cust label{display:flex;flex-direction:column;gap:4px;font-size:10px;font-weight:800;letter-spacing:.5px;color:var(--muted)}
+.rng-cust input{padding:8px 9px;border:1px solid var(--line);border-radius:9px;font-size:12.5px;color:var(--text)}
+.rng-apply{width:100%;margin-top:10px;padding:10px;border:none;border-radius:10px;background:var(--navy);color:#fff;font-weight:800;font-size:13.5px;cursor:pointer}
+.rng-apply:hover{background:var(--navy-3)}
+@media(max-width:860px){ .rng-menu{right:auto;left:0} }
 
 /* ============ Table ============ */
 .tbl-wrap{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);overflow-x:auto}
@@ -799,11 +817,14 @@ function renderPage(){
 /* ==================== DASHBOARD ==================== */
 function renderDashboard(){
   const leads=visibleLeads(), m=thisMonth();
+  const dLbl = rangeLabel(pageRangeObj("dashboard"));
+  const newR = leads.filter(l=>inRange(l.created_at,"dashboard")).length;
   const active = leads.filter(l=>![WON,LOST].includes(l.stage));
   const newM = leads.filter(l=>monthKey(l.created_at)===m).length;
   const won = leads.filter(l=>l.stage===WON);
   const lost = leads.filter(l=>l.stage===LOST);
   const wonM = won.filter(l=>monthKey(l.updated_at||l.created_at)===m).length;
+  const wonR = won.filter(l=>inRange(l.updated_at||l.created_at,"dashboard")).length;
   const conv = (won.length+lost.length) ? Math.round(won.length/(won.length+lost.length)*100) : null;
   const activeClients = visibleClients().filter(c=>c.status!=="Yakunlangan");
   const mrr = activeClients.reduce((s,c)=>s+Number(c.monthly||0),0);
@@ -843,11 +864,12 @@ function renderDashboard(){
 
   return `
   <div class="page-head"><h1>Boshqaruv paneli</h1><div class="grow"></div>
+    ${rangePicker("dashboard")}
     <button class="btn btn-primary" onclick="leadForm()">+ Yangi lid</button></div>
   <div class="stats">
     <div class="stat"><div class="v">${active.length}</div><div class="l">Faol lidlar</div>${overdue?`<div class="d" style="color:var(--red)">⏰ ${overdue} ta kechikkan qadam</div>`:""}</div>
-    <div class="stat"><div class="v">${newM}</div><div class="l">Bu oy yangi lid</div></div>
-    <div class="stat"><div class="v green">${wonM}</div><div class="l">Bu oy xarid qildi</div></div>
+    <div class="stat"><div class="v">${newR}</div><div class="l">Yangi lid <span style="color:var(--muted-2)">· ${esc(dLbl)}</span></div></div>
+    <div class="stat"><div class="v green">${wonR}</div><div class="l">Xarid qildi <span style="color:var(--muted-2)">· ${esc(dLbl)}</span></div></div>
     <div class="stat"><div class="v sky">${fm(pipeVal)}</div><div class="l">Kutilayotgan savdo</div></div>
     <div class="stat"><div class="v green">${fm(mrr)}</div><div class="l">Umumiy savdo</div><div class="d">${activeClients.length} ta faol mijoz</div></div>
     <div class="stat"><div class="v">${conv===null?"—":conv+"%"}</div><div class="l">Xaridga aylanish %</div></div>
@@ -871,10 +893,75 @@ function filteredLeads(){
     if(ui.fSource && l.source!==ui.fSource) return false;
     if(ui.fService && l.service!==ui.fService) return false;
     if(ui.fOwner && l.owner!==ui.fOwner) return false;
+    if(!inRange(l.created_at, "leads")) return false;
     return true;
   });
 }
 function setF(k,v){ ui[k]=v; saveUI(); render(); }
+
+/* ===== Sana oralig'i tanlagichi (har sahifada) ===== */
+const isoD = d => { const z=new Date(d.getTime()-d.getTimezoneOffset()*60000); return z.toISOString().slice(0,10); };
+const RANGE_LBL = {bugun:"Bugun",kecha:"Kecha","7d":"Oxirgi 7 kun","14d":"Oxirgi 14 kun","30d":"Oxirgi 30 kun",hafta:"Bu hafta",ohafta:"O'tgan hafta",oy:"Bu oy",ooy:"O'tgan oy",max:"Maksimum"};
+const RANGE_DEF = {dashboard:"oy", leads:"max", calls:"7d", clients:"max"};
+function pageRangeObj(page){ ui.rng=ui.rng||{}; return ui.rng[page] || {p:RANGE_DEF[page]||"max"}; }
+function rangeOf(r){
+  if(r.from&&r.to) return {from:r.from, to:r.to};
+  const t=new Date(), today=todayISO(), dow=(t.getDay()+6)%7;
+  switch(r.p){
+    case "bugun": return {from:today,to:today};
+    case "kecha": return {from:agoISO(1),to:agoISO(1)};
+    case "7d": return {from:agoISO(6),to:today};
+    case "14d": return {from:agoISO(13),to:today};
+    case "30d": return {from:agoISO(29),to:today};
+    case "hafta": { const m=new Date(t); m.setDate(t.getDate()-dow); return {from:isoD(m),to:today}; }
+    case "ohafta": { const m=new Date(t); m.setDate(t.getDate()-dow-7); const s=new Date(m); s.setDate(m.getDate()+6); return {from:isoD(m),to:isoD(s)}; }
+    case "oy": return {from:isoD(new Date(t.getFullYear(),t.getMonth(),1)),to:today};
+    case "ooy": return {from:isoD(new Date(t.getFullYear(),t.getMonth()-1,1)),to:isoD(new Date(t.getFullYear(),t.getMonth(),0))};
+    default: return {from:"2000-01-01",to:today};
+  }
+}
+function rangeLabel(r){ if(r.from&&r.to) return r.from.slice(5).replace("-",".")+"–"+r.to.slice(5).replace("-","."); return RANGE_LBL[r.p]||"Maksimum"; }
+function inRange(dateStr, page){ if(!dateStr) return false; const {from,to}=rangeOf(pageRangeObj(page)); const d=String(dateStr).slice(0,10); return d>=from && d<=to; }
+function rangePicker(page){
+  const r=pageRangeObj(page), rg=rangeOf(r);
+  const opt=(k)=>`<button class="rng-opt${(!r.from&&r.p===k)?" on":""}" onclick="setRange('${page}','${k}')">${RANGE_LBL[k]}</button>`;
+  return `<div class="rng">
+    <button class="rng-btn" onclick="toggleRangeMenu(this)"><span>📅</span> ${esc(rangeLabel(r))} <span class="rng-ar">▾</span></button>
+    <div class="rng-menu" onclick="event.stopPropagation()">
+      <div class="rng-grid">${["bugun","kecha","7d","14d","30d","hafta","ohafta","oy","ooy","max"].map(opt).join("")}</div>
+      <div class="rng-cust">
+        <label>DAN<input type="date" id="rf_${page}" value="${r.from||rg.from}"></label>
+        <label>GACHA<input type="date" id="rt_${page}" value="${r.to||rg.to}"></label>
+      </div>
+      <button class="rng-apply" onclick="applyRange('${page}')">Qo'llash</button>
+    </div>
+  </div>`;
+}
+function toggleRangeMenu(btn){ const c=btn.closest(".rng"); const open=c.classList.contains("open"); document.querySelectorAll(".rng.open").forEach(x=>x.classList.remove("open")); if(!open) c.classList.add("open"); }
+function setRange(page,p){ ui.rng=ui.rng||{}; ui.rng[page]={p}; saveUI(); render(); }
+function applyRange(page){ const f=(document.getElementById("rf_"+page)||{}).value, t=(document.getElementById("rt_"+page)||{}).value; if(!f||!t){toast("Ikkala sanani tanlang","err");return;} if(f>t){toast("DAN sanasi kattaroq","err");return;} ui.rng=ui.rng||{}; ui.rng[page]={from:f,to:t}; saveUI(); render(); }
+/* sana + mahalliy soat (masalan "14-avg, 15:30") */
+function whenStr(iso){ if(!iso) return ""; const d=new Date(iso); if(isNaN(d)) return fmtDate(iso); const p=n=>String(n).padStart(2,"0"); return fmtDate(iso)+", "+p(d.getHours())+":"+p(d.getMinutes()); }
+
+/* ===== Sotuvchining qo'ng'iroqlari (qatorma-qator, raqam+yozuv) ===== */
+function operatorCalls(name){
+  const {from,to}=rangeOf(pageRangeObj("calls"));
+  const cs=visibleCalls().filter(c=>c.operator===name && (c.rec_date||"")>=from && (c.rec_date||"")<=to)
+    .sort((a,b)=>((b.rec_date||"")+(b.rec_time||"")).localeCompare((a.rec_date||"")+(a.rec_time||"")));
+  const tot=cs.filter(c=>c.answered!==false).reduce((s,c)=>s+Number(c.seconds||0),0);
+  const rows=cs.map(c=>{
+    const ms=c.answered===false, tm=c.rec_time?String(c.rec_time).slice(0,5):"";
+    const ph=fmtPhone(c.phone)||fmtPhone(callPhone(c.file_name))||"—";
+    return `<div class="tl-it">
+      <div class="tl-n" style="background:${ms?"var(--red-bg)":"var(--green-bg)"};color:${ms?"var(--red)":"var(--green)"}">${ms?"📵":"🎧"}</div>
+      <div style="flex:1;min-width:0"><div><b>${esc(ph)}</b></div><div class="t">${ms?"Ko'tarmadi":fmtDur(c.seconds)} · ${fmtDate(c.rec_date)}${tm?" "+tm:""}</div></div>
+      ${(c.rec_url||c.drive_id)?`<div style="align-self:center;flex-shrink:0"><button class="btn btn-line btn-sm" onclick="playRec(this,'${esc(c.drive_id||"")}','${esc(c.rec_url||"")}')">▶ Tinglash</button></div>`:""}
+    </div>`;
+  }).join("");
+  modal(`<div class="m-head"><h2>📞 ${esc(name)}</h2><button class="m-x" onclick="closeModal()">✕</button></div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:12px">${cs.length} ta qo'ng'iroq · jami gaplashilgan <b>${fmtDur(tot)}</b> <span style="color:var(--muted-2)">· ${esc(rangeLabel(pageRangeObj("calls")))}</span></p>
+    <div class="tl" style="max-height:60vh;overflow:auto">${rows||`<div style="color:var(--muted);font-size:13px">Bu davrda qo'ng'iroq yo'q</div>`}</div>`, true);
+}
 
 function renderLeads(){
   const list = filteredLeads();
@@ -883,6 +970,7 @@ function renderLeads(){
 
   const toolbar = `
   <div class="page-head"><h1>Lidlar</h1><div class="grow"></div>
+    ${rangePicker("leads")}
     <div class="seg">
       <button class="${ui.view==="kanban"?"on":""}" onclick="setF('view','kanban')">Kanban</button>
       <button class="${ui.view==="list"?"on":""}" onclick="setF('view','list')">Jadval</button>
@@ -923,6 +1011,7 @@ function leadCard(l){
       ${nCalls?`<span class="chip" style="background:var(--green-bg);color:var(--green)">📞 ${nCalls}</span>`:""}
       ${stale?`<span class="chip due">⏰ 24s+ tegilmagan</span>`:""}
     </div>
+    ${l.created_at?`<div class="lead-when">🕐 ${esc(whenStr(l.created_at))} tushdi</div>`:""}
     ${l.stage===LOST&&l.lost_reason?`<div class="lost">✕ ${esc(l.lost_reason)}</div>`:""}
   </div>`;
 }
@@ -1132,8 +1221,9 @@ function callsInPeriod(days){
   return visibleCalls().filter(c=>(c.rec_date||"")>=from);
 }
 function renderCalls(){
-  const days = Number(ui.callsPeriod)||7;
-  const rows = callsInPeriod(days);
+  const rObj = pageRangeObj("calls");
+  const { from:rFrom, to:rTo } = rangeOf(rObj);
+  const rows = visibleCalls().filter(c=>(c.rec_date||"")>=rFrom && (c.rec_date||"")<=rTo);
   const totalSec = rows.reduce((s,c)=>s+Number(c.seconds||0),0);
   const totalCnt = rows.reduce((s,c)=>s+Number(c.cnt||1),0);
   const avg = totalCnt ? totalSec/totalCnt : 0;
@@ -1152,8 +1242,8 @@ function renderCalls(){
   });
   const opRows = Object.entries(ops).sort((a,b)=>b[1].sec-a[1].sec).map(([name,o])=>{
     const pct = Math.min(Math.round(o.today/60/target*100),100);
-    return `<tr>
-      <td><div style="display:flex;align-items:center;gap:9px"><span class="ava" style="background:${avatarGrad(name)};width:30px;height:30px;font-size:11px">${esc(initials(name))}</span><b>${esc(name)}</b></div></td>
+    return `<tr onclick="operatorCalls(this.getAttribute('data-op'))" data-op="${esc(name)}" style="cursor:pointer" title="Batafsil: raqamlar + yozuvlar">
+      <td><div style="display:flex;align-items:center;gap:9px"><span class="ava" style="background:${avatarGrad(name)};width:30px;height:30px;font-size:11px">${esc(initials(name))}</span><b>${esc(name)}</b> <span style="color:var(--muted-2);font-size:12px">›</span></div></td>
       <td>${o.cnt}</td>
       <td><b>${Object.keys(o.ppl).length}</b></td>
       <td><b>${fmtDur(o.sec)}</b></td>
@@ -1180,15 +1270,11 @@ function renderCalls(){
 
   return `
   <div class="page-head"><h1>Qo'ng'iroqlar</h1><div class="grow"></div>
-    <div class="seg">
-      <button class="${days===1?"on":""}" onclick="setF('callsPeriod',1)">Bugun</button>
-      <button class="${days===7?"on":""}" onclick="setF('callsPeriod',7)">7 kun</button>
-      <button class="${days===30?"on":""}" onclick="setF('callsPeriod',30)">30 kun</button>
-    </div>
+    ${rangePicker("calls")}
     <label class="btn btn-primary" style="cursor:pointer">📤 Yozuvlarni yuklash<input type="file" accept="audio/*,.m4a" multiple style="display:none" onchange="uploadRecordings(this)"></label>
     <button class="btn btn-line" onclick="callForm()">+ Qo'lda kiritish</button></div>
   <div class="stats">
-    <div class="stat"><div class="v sky">${fmtDur(totalSec)}</div><div class="l">Jami gaplashilgan (${days===1?"bugun":days+" kun"})</div></div>
+    <div class="stat"><div class="v sky">${fmtDur(totalSec)}</div><div class="l">Jami gaplashilgan (${esc(rangeLabel(rObj))})</div></div>
     <div class="stat"><div class="v">${totalCnt}</div><div class="l">Qo'ng'iroqlar soni</div></div>
     <div class="stat"><div class="v">${fmtDur(avg)}</div><div class="l">O'rtacha davomiylik</div></div>
     <div class="stat"><div class="v green">${target} daq</div><div class="l">Kunlik norma /sotuvchi</div><div class="d">Sozlamalarda o'zgaradi</div></div>
@@ -1235,7 +1321,7 @@ async function saveCallForm(){
 
 /* ==================== CLIENTS ==================== */
 function renderClients(){
-  const mine = visibleClients();
+  const mine = visibleClients().filter(c=>inRange(c.created_at||c.start_date, "clients"));
   const act = mine.filter(c=>c.status!=="Yakunlangan");
   const mrr = act.reduce((s,c)=>s+Number(c.monthly||0),0);
   const avg = act.length?Math.round(mrr/act.length):0;
@@ -1253,6 +1339,7 @@ function renderClients(){
   }).join("");
   return `
   <div class="page-head"><h1>Mijozlar</h1><div class="grow"></div>
+    ${rangePicker("clients")}
     <button class="btn btn-primary" onclick="clientForm()">+ Yangi mijoz</button></div>
   <div class="stats">
     <div class="stat"><div class="v">${act.length}</div><div class="l">Faol mijozlar</div></div>
@@ -1458,6 +1545,7 @@ function modal(html, wide){
 let modalLocked = false;   // kirish oynasi — kirmaguncha yopilmaydi
 function closeModal(){ if(modalLocked) return; document.getElementById("modalBg").classList.remove("show"); }
 document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeModal(); });
+document.addEventListener("click", e=>{ if(!e.target.closest(".rng")) document.querySelectorAll(".rng.open").forEach(x=>x.classList.remove("open")); });
 
 const selOpts = (arr,cur) => arr.map(v=>`<option value="${esc(v)}"${v===cur?" selected":""}>${esc(v)}</option>`).join("");
 /* joriy qiymat ro'yxatda bo'lmasa ham saqlanadi (masalan Meta manbasi "Luzzi Home (Meta)") */
