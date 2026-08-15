@@ -171,6 +171,10 @@ input,select,textarea{font-family:inherit;font-size:14px;color:var(--text)}
 .rng-apply{width:100%;margin-top:10px;padding:10px;border:none;border-radius:10px;background:var(--navy);color:#fff;font-weight:800;font-size:13.5px;cursor:pointer}
 .rng-apply:hover{background:var(--navy-3)}
 @media(max-width:860px){ .rng-menu{right:auto;left:0} }
+/* "Yangi lid oladi" tugmasi (jamoa muharriri) */
+.tm-flow{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:var(--green);cursor:pointer;white-space:nowrap;flex-shrink:0;padding:4px 9px;border-radius:8px;background:var(--green-bg)}
+.tm-flow.off{color:var(--amber);background:var(--amber-bg)}
+.tm-flow input{margin:0;cursor:pointer;accent-color:var(--green)}
 
 /* ============ Table ============ */
 .tbl-wrap{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);overflow-x:auto}
@@ -429,7 +433,7 @@ let sb = null, dragLeadId = null, _lastSig = "";
 function normTeam(arr){
   let t = Array.isArray(arr) ? arr.map(m => typeof m==="string"
       ? {name:m, email:"", role:"operator", pin:""}
-      : {name:String(m&&m.name||"").trim(), email:String(m&&m.email||"").trim().toLowerCase(), role:(m&&m.role)==="admin"?"admin":"operator", pin:String(m&&m.pin||"")}
+      : {name:String(m&&m.name||"").trim(), email:String(m&&m.email||"").trim().toLowerCase(), role:(m&&m.role)==="admin"?"admin":(m&&m.role)==="operator_paused"?"operator_paused":"operator", pin:String(m&&m.pin||"")}
     ).filter(m=>m.name) : [];
   if(!t.length) t=defaultTeam();
   if(!t.some(m=>m.role==="admin")) t[0].role="admin";
@@ -1382,15 +1386,16 @@ function teamEditor(){
       <input class="st-name" style="flex:0 0 120px" value="${esc(m.name)}" onchange="tmRen(${i},this.value)" title="Ism (ichki — lid/qo'ng'iroq shu ismga bog'lanadi)">
       <input class="st-name" type="email" style="flex:1;min-width:150px" value="${esc(m.email||"")}" placeholder="email@gmail.com" onchange="tmEmail(${i},this.value)" title="Kirish uchun email">
       <select class="tm-role" onchange="tmRole(${i},this.value)">
-        <option value="operator"${m.role==="operator"?" selected":""}>Sotuvchi</option>
+        <option value="operator"${(m.role==="operator"||m.role==="operator_paused")?" selected":""}>Sotuvchi</option>
         <option value="admin"${m.role==="admin"?" selected":""}>Admin</option>
       </select>
       <input class="tm-pin" type="text" value="${esc(m.pin)}" placeholder="Parol" onchange="tmPin(${i},this.value)" title="Kirish paroli">
+      ${m.role==="admin"?"":`<label class="tm-flow${m.role==="operator_paused"?" off":""}" title="Yangi lidlarni navbat bilan oladimi. O'chirilsa — pauza (yangi lid olmaydi, lekin mavjud lidlari qoladi)."><input type="checkbox" ${m.role==="operator_paused"?"":"checked"} onchange="tmLeadFlow(${i},this.checked)">${m.role==="operator_paused"?"⏸ Pauza":"🔔 Yangi lid"}</label>`}
       ${(!m.pin||!m.email)?`<span title="${!m.email?"Emailsiz":"Parolsiz"} — kira olmaydi" style="color:var(--red);font-size:15px;flex-shrink:0">⚠️</span>`:""}
       <button class="st-btn st-del" onclick="tmDel(${i})" title="O'chirish">✕</button>
     </div>`).join("");
   return `<div class="card" style="grid-column:1/-1"><h3>Jamoa a'zolari, rollar va parollar</h3>
-    <p style="font-size:12.5px;color:var(--muted);margin-bottom:10px">Kirish <b>email + parol</b> bilan. <b>Ism</b> — ichki (lid egasi, qo'ng'iroq sotuvchisi shu ismga bog'lanadi, o'zgartirmang). <b>Admin</b> hammani ko'radi (yagona panel); <b>sotuvchi</b> faqat o'zinikini. ⚠️ = email yoki parol yo'q → kira olmaydi.</p>
+    <p style="font-size:12.5px;color:var(--muted);margin-bottom:10px">Kirish <b>email + parol</b> bilan. <b>Ism</b> — ichki (lid egasi, qo'ng'iroq sotuvchisi shu ismga bog'lanadi, o'zgartirmang). <b>Admin</b> hammani ko'radi (yagona panel); <b>sotuvchi</b> faqat o'zinikini. <b>🔔 Yangi lid</b> — belgilangan sotuvchilarga yangi lidlar navbat bilan tushadi; o'chirsangiz <b>⏸ pauza</b> (o'sha sotuvchi yangi lid olmaydi, lekin mavjud lidlari qoladi va kira oladi). ⚠️ = email yoki parol yo'q → kira olmaydi.</p>
     ${rows}
     <div class="add-row" style="margin-top:10px;flex-wrap:wrap">
       <input id="tm_new_name" style="flex:0 0 120px" placeholder="Ism" onkeydown="if(event.key==='Enter')tmAdd()">
@@ -1408,7 +1413,14 @@ function tmRole(i,v){
   if(v!=="admin" && t.filter(m=>m.role==="admin").length<=1 && t[i].role==="admin"){
     toast("Kamida bitta admin qolishi kerak","err"); render(); return;
   }
-  t[i].role = v==="admin"?"admin":"operator"; saveSettings(); render();
+  t[i].role = v==="admin" ? "admin" : (t[i].role==="operator_paused" ? "operator_paused" : "operator"); saveSettings(); render();
+}
+// yangi lid oqimi: yoqilsa 'operator' (navbatga kiradi), o'chirilsa 'operator_paused' (pauza)
+function tmLeadFlow(i,on){
+  const m=DB.settings.team[i]; if(!m || m.role==="admin") return;
+  m.role = on ? "operator" : "operator_paused";
+  saveSettings(); render();
+  toast(on ? `${m.name} — endi yangi lid oladi ✓` : `${m.name} — yangi lid to'xtatildi (pauza)`);
 }
 function tmPin(i,v){ DB.settings.team[i].pin=v.trim(); saveSettings(); }
 function tmDel(i){
