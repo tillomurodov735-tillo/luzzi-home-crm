@@ -1,5 +1,55 @@
 <!DOCTYPE html>
-<!-- Luzzi Home CRM — build: favicon -->
+<!-- LUZZI-HOME-CRM-TEMPLATE v1
+==============================================================================
+  LUZZI HOME CRM  —  YAGONA-FAYL SHABLON  (o'zini-izohlovchi HTML template)
+  CLAUDE UCHUN: bu fayl O'ZINI TANITADI. Yangi kompyuter (Mac) yoki yangi
+  suhbatda ham — pastdagi xaritani o'qing, foydalanuvchi o'zgartirish so'raydi,
+  siz kodni tahrirlab YANGILANGAN faylni qaytaring. Javob tili: o'zbek (lotin).
+  Yangilash: 2026-08-19 · vanilla JS (framework yo'q)
+==============================================================================
+  NIMA — Luzzi Home parda studiyasi CRM. Bitta HTML fayl, o'zi yetarli.
+  DIZAYN — terracotta(g'isht)+oltin+krem premium. Ranglar <style> ichida
+           :root o'zgaruvchilarida (--navy=#7c2d13 terracotta, --sky=#c9a24c oltin).
+
+  BACKEND / MA'LUMOT
+   - Supabase: SB_URL + SB_KEY (grep: "const SB_URL"). Kalit bo'lmasa localStorage rejimi.
+   - localStorage kalit: luzzihome_v1_db (ma'lumot), luzzihome_v1_ui (interfeys)
+   - Jadvallar: leads, clients, activities, tasks, calls, settings(id=1, data=jsonb)
+   - Storage bucket: recordings (qo'ng'iroq yozuvi) · Realtime: subRealtime()
+   - Holat: DB={leads,clients,activities,tasks,calls,settings}
+            STAGES = DB.settings.stages (getter) · ui = interfeys holati
+   - Yangi lid taqsimoti: Supabase `ingest_lead` RPC -> role='operator'larga
+
+  SAHIFALAR (grep: renderPage / go)
+   dashboard · leads(kanban+ro'yxat) · tasks(vazifa) · calls(qo'ng'iroq nazorati)
+   · clients(mijoz) · script(sotuv skripti) · settings(sozlama)
+
+  ROLLAR
+   admin           = hammani ko'radi
+   operator        = faqat o'zinikini (owner===ui.profile)
+   operator_paused = tizimda qoladi, LEKIN yangi lid OLMAYDI (pauza holati)
+
+  ASOSIY FUNKSIYALAR (grep bilan toping)
+   Rout:   render -> renderPage -> go      |  Ekran: render<Sahifa>()
+   Lid:    leadForm/saveLeadForm, leadDetail, stageChange(drag&drop),
+           createLead/updateLead/deleteLead, lostModal, convertModal
+   DB:     dbInsert/dbUpdate/dbDelete, addActivity, saveSettings, applyChange
+   Kirish: loginModal/doLogin(PIN), logout
+   Qo'ng'iroq: uploadRecordings, playRec, operatorCalls, nazoratCard
+   Eksport: exportCSV/exportJSON/importJSON · seedDemo · boshlash: init()
+
+  TEZ TAHRIR — nimani qayerdan o'zgartirish
+   - Bosqichlar : Sozlamalar->Bosqichlar (stAdd/stRen/stColor/stMove/stDel)
+                  yoki kodda DEFAULT_STAGES. "imzolandi"(WON)/"yoqotildi"(LOST) doim oxirda.
+   - Sotuvchilar: Sozlamalar->Jamoa (tmAdd) yoki kodda DEFAULT_SETTINGS.team
+   - Pauza qilish: Jamoa'da "yangi lid / pauza" tugma (tmLeadFlow) -> operator_paused
+   - Ranglar    : <style> :root  ·  Sotuv skripti: DEFAULT_SCRIPT
+   - Manba/xizmat: DEFAULT_SETTINGS.sources / .services
+   - Supabase ulash: SB_URL + SB_KEY
+
+  DEPLOY — GitHub -> Vercel (statik sayt). Supabase loyiha: zshugvsjvboupizbokiw
+==============================================================================
+-->
 <html lang="uz">
 <head>
 <meta charset="UTF-8">
